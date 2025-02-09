@@ -41,6 +41,12 @@ push:
 	git push
 
 # Build the package and publish to PyPI manually
+testpypi:
+	poetry build
+	twine upload --repository testpypi dist/*
+	@echo install with pip install --index-url https://test.pypi.org/simple/ --no-deps wids
+
+# Build the package and publish to PyPI manually
 pypi:
 	poetry build
 	twine upload dist/*
