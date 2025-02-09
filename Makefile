@@ -48,6 +48,26 @@ testpypi:
 
 # Build the package and publish to PyPI manually
 pypi:
+	test -z "$$(git status --porcelain)"
+	poetry version patch
+	git add pyproject.toml
+	git commit -m "patch release"
+	poetry build
+	twine upload dist/*
+
+pypiminor:
+	test -z "$$(git status --porcelain)"
+	poetry version minor
+	git add pyproject.toml
+	git commit -m "minor release"
+	poetry build
+	twine upload dist/*
+
+pypimajor:
+	test -z "$$(git status --porcelain)"
+	poetry version major
+	git add pyproject.toml
+	git commit -m "major release"
 	poetry build
 	twine upload dist/*
 
