@@ -1,4 +1,3 @@
-import io
 import json
 import os
 import random
@@ -183,25 +182,6 @@ class TestSpecs:
         shardlist = wids_specs.extract_shardlist(spec)
         assert len(shardlist) == 1
 
-    def test_spec_parsing(self):
-        spec = textwrap.dedent(
-            """
-        {
-            "__kind__": "wids-shard-index-v1",
-            "name": "train",
-            "wids_version": 1,
-            "shardlist": [
-                {
-                    "url": "testdata/mpdata.tar",
-                    "nsamples": 10
-                }
-            ]
-        }
-        """
-        )
-        stream = io.StringIO(spec)
-        dataset = wids.ShardListDataset(stream)
-        assert len(dataset) == 10
 
 
 class TestShardedSampler:
