@@ -47,29 +47,43 @@ testpypi:
 	@echo install with pip install --index-url https://test.pypi.org/simple/ --no-deps wids
 
 # Build the package and publish to PyPI manually
-pypi:
+
+rerelease:
+	test -z "$$(git status --porcelain)"
+	git push
+	poetry build
+	twine upload "$$(ls -t dist/*.whl | sed 1q)"
+	twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
+
+patchrelease:
 	test -z "$$(git status --porcelain)"
 	poetry version patch
 	git add pyproject.toml
 	git commit -m "patch release"
+	git push
 	poetry build
-	twine upload dist/*
+	twine upload "$$(ls -t dist/*.whl | sed 1q)"
+	twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
 
-pypiminor:
+minorrelease:
 	test -z "$$(git status --porcelain)"
 	poetry version minor
 	git add pyproject.toml
 	git commit -m "minor release"
 	poetry build
-	twine upload dist/*
+	git push
+	twine upload "$$(ls -t dist/*.whl | sed 1q)"
+	twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
 
-pypimajor:
+majorrelease:
 	test -z "$$(git status --porcelain)"
 	poetry version major
 	git add pyproject.toml
 	git commit -m "major release"
 	poetry build
-	twine upload dist/*
+	git push
+	twine upload "$$(ls -t dist/*.whl | sed 1q)"
+	twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
 
 # Bump version (patch), commit, tag, and push release to GitHub
 # release:
