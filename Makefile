@@ -66,17 +66,14 @@ release:
 # Patch release (0.0.x)
 patch:
 	bumpversion patch
-	git push && git push --tags
 	$(MAKE) release
 
 # Minor release (0.x.0)
 minorrelease:
 	bumpversion minor
-	git push && git push --tags
 	$(MAKE) release
 
 # Major release (x.0.0)
 majorrelease:
 	bumpversion major
-	git push && git push --tags
 	$(MAKE) release
