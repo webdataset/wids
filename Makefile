@@ -57,8 +57,8 @@ testpypi:
 # Rebuild and reupload current version
 release:
 	! test -z "$$VIRTUAL_ENV" # must have sourced .venv/bin/activate
-	test -z "$$(git status --porcelain)"
 	git push
+	test -z "$$(git status --porcelain)"
 	$$VIRTUAL_ENV/bin/python -m build
 	$$VIRTUAL_ENV/bin/twine upload "$$(ls -t dist/*.whl | sed 1q)"
 	$$VIRTUAL_ENV/bin/twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
