@@ -22,20 +22,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install uv
+        run: pip install uv
 
-      - name: Install dependencies
-        run: poetry install
+      - name: Install uv
+        run: uv sync
 
       - name: Run Black check
-        run: poetry run black --check .
+        run: uv run black --check .
 
       - name: Run Ruff check
-        run: poetry run ruff .
+        run: uv run ruff .
 
       - name: Run Tests
-        run: poetry run pytest
+        run: uv run pytest
 
