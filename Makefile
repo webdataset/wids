@@ -34,6 +34,7 @@ test:
 # Generate documentation using MkDocs
 docs:
 	! test -z "$$VIRTUAL_ENV" # must have sourced .venv/bin/activate
+	# jupyter-nbconvert readme.ipynb --to markdown && mv readme.md README.md
 	$$VIRTUAL_ENV/bin/mkdocs build
 
 # Serve documentation locally (for preview)
