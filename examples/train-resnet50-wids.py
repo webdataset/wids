@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import os
-import resource
 import time
 import traceback
 from collections import deque
@@ -143,7 +142,7 @@ def main(
             model=model,
             report_every=report_every,
         )
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
 
 
