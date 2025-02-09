@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wids"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python library for managing and processing dataset archives."
 authors = ["Thomas Breuel <tmbdev@gmail.com>"]
 license = "BSD-3-Clause"
