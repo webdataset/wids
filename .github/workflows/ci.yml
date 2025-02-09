@@ -25,6 +25,9 @@ jobs:
       - name: Install uv
         run: pip install uv
 
+      - name: Install wids
+        run: pip install -e .
+
       - name: Install uv
         run: uv sync --all-extras
 
