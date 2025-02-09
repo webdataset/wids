@@ -71,9 +71,7 @@ def make_loader(split, num_workers=4):
         dataset.add_transform(make_sample)
         sampler = wids.DistributedChunkedSampler(dataset, chunksize=1000, shuffle=True)
         sampler.set_epoch(0)
-        loader = DataLoader(
-            dataset, batch_size=64, num_workers=num_workers, sampler=sampler
-        )
+        loader = DataLoader(dataset, batch_size=64, num_workers=num_workers, sampler=sampler)
     else:
         dataset = wids.ShardListDataset(
             "gs://webdataset/fake-imagenet/imagenet-val.json",
@@ -115,8 +113,7 @@ def train_model(trainloader=None, num_epochs=10, model=None, report_every=10):
 
             if verbose and len(losses) > 5:
                 print(
-                    "[%d, %5d] loss: %.5f correct: %.5f"
-                    % (epoch + 1, i + 1, np.mean(losses), np.mean(accuracies)),
+                    "[%d, %5d] loss: %.5f correct: %.5f" % (epoch + 1, i + 1, np.mean(losses), np.mean(accuracies)),
                 )
 
     print("Finished Training")

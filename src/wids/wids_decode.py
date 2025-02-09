@@ -11,9 +11,7 @@ def check_keys(sample: Dict[str, Any]):
         assert k.startswith("."), f"Key {k} must start with a dot"
 
 
-def decode_all_gz(
-    sample: Dict[str, Any], format: Optional[Union[bool, str]] = True, update_key=True
-):
+def decode_all_gz(sample: Dict[str, Any], format: Optional[Union[bool, str]] = True, update_key=True):
     """Decode all keys that end in .gz and rename to the key without .gz."""
 
     check_keys(sample)
@@ -110,9 +108,7 @@ def decode_basic(sample: Dict[str, Any], format: Optional[Union[bool, str]] = Tr
     return sample
 
 
-def decode_images_to_pil(
-    sample: Dict[str, Any], format: Optional[Union[bool, str]] = True
-):
+def decode_images_to_pil(sample: Dict[str, Any], format: Optional[Union[bool, str]] = True):
     """ """
     import PIL.Image
 
@@ -135,9 +131,7 @@ def decode_images_to_pil(
     return sample
 
 
-def decode_images_to_numpy(
-    sample: Dict[str, Any], format: Optional[Union[bool, str]] = True
-):
+def decode_images_to_numpy(sample: Dict[str, Any], format: Optional[Union[bool, str]] = True):
     import numpy as np
     import PIL.Image
 

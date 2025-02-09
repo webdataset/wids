@@ -1,8 +1,6 @@
 import argparse
 import json
 
-from webdataset import WebDataset
-
 from . import wids
 
 
@@ -17,6 +15,8 @@ def main_wids(args):
 
 
 def main_wds(args):
+    from webdataset import WebDataset  # type: ignore
+
     desc = json.load(open(args.dataset))
     files = desc["files"]
     urls = [f["url"] for f in files]

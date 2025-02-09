@@ -63,7 +63,7 @@ class ExclusiveLock:
             fcntl.flock(self.lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             return True
         except OSError as e:
-            if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
+            if e.errno in (os.errno.EAGAIN, os.errno.EWOULDBLOCK):
                 return False
             else:
                 raise
@@ -73,9 +73,7 @@ class ExclusiveLock:
         os.unlink(self.lockfile)
 
 
-def create_cleanup_background_process(
-    pattern, maxsize=int(1e12), maxfiles=1000, every=60
-):
+def create_cleanup_background_process(pattern, maxsize=int(1e12), maxfiles=1000, every=60):
     """Create a background process that keeps a directory below a certain size."""
 
     def cleanup_worker(every):

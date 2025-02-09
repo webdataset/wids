@@ -165,9 +165,7 @@ class IndexedTarSamples:
 
         # check that the number of samples is correct
         if expected_size is not None:
-            assert (
-                len(self) == expected_size
-            ), f"Expected {expected_size} samples, got {len(self)}"
+            assert len(self) == expected_size, f"Expected {expected_size} samples, got {len(self)}"
 
         self.uuid = str(uuid.uuid4())
 
@@ -209,25 +207,19 @@ def hash_localname(dldir="/tmp/_wids_cache"):
 
     connection = sqlite3.connect(os.path.join(dldir, "cache.db"))
     cursor = connection.cursor()
-    cursor.execute(
-        "CREATE TABLE IF NOT EXISTS cache (url TEXT PRIMARY KEY, path TEXT, checksum TEXT)"
-    )
+    cursor.execute("CREATE TABLE IF NOT EXISTS cache (url TEXT PRIMARY KEY, path TEXT, checksum TEXT)")
     connection.commit()
 
     def f(shard):
         """Given a URL, return a local name for the shard."""
         if shard.startswith("pipe:"):
             # uuencode the entire URL string
-            hex32 = base64.urlsafe_b64encode(hashlib.sha256(shard.encode()).digest())[
-                :32
-            ].decode()
+            hex32 = base64.urlsafe_b64encode(hashlib.sha256(shard.encode()).digest())[:32].decode()
             return os.path.join(dldir, "pipe__" + hex32)
         else:
             # we hash the host and directory components into a 16 character string
             dirname = urldir(shard)
-            hex16 = base64.urlsafe_b64encode(hashlib.sha256(dirname.encode()).digest())[
-                :16
-            ].decode()
+            hex16 = base64.urlsafe_b64encode(hashlib.sha256(dirname.encode()).digest())[:16].decode()
             # the cache name is the concatenation of the hex16 string and the file name component of the URL
             cachename = "data__" + hex16 + "__" + os.path.basename(urlparse(shard).path)
             checksum = None
@@ -321,14 +313,10 @@ def interpret_transformations(transformations):
 
     for transformation in transformations:
         if transformation == "PIL":
-            warnings.warn(
-                "String specifications for transformations are deprecated. Use functions instead."
-            )
+            warnings.warn("String specifications for transformations are deprecated. Use functions instead.")
             transformation = partial(default_decoder, format="PIL")
         elif transformation == "numpy":
-            warnings.warn(
-                "String specifications for transformations are deprecated. Use functions instead."
-            )
+            warnings.warn("String specifications for transformations are deprecated. Use functions instead.")
             transformation = partial(default_decoder, format="numpy")
         else:
             assert callable(transformation)
@@ -446,9 +434,7 @@ class ShardListDataset(Dataset[T]):
         self.transformations = interpret_transformations(transformations)
 
         if lru_size > 200:
-            warnings.warn(
-                "LRU size is very large; consider reducing it to avoid running out of file descriptors"
-            )
+            warnings.warn("LRU size is very large; consider reducing it to avoid running out of file descriptors")
         self.cache = LRUShards(lru_size, localname=self.localname, keep=keep)
 
     def add_transform(self, transform):
@@ -470,11 +456,7 @@ class ShardListDataset(Dataset[T]):
         if accesses > 100 and misses / accesses > 0.3:
             # output a warning only once
             self.check_cache_misses = lambda: None
-            print(
-                "Warning: ShardListDataset has a cache miss rate of {:.1%}%".format(
-                    misses * 100.0 / accesses
-                )
-            )
+            print("Warning: ShardListDataset has a cache miss rate of {:.1%}%".format(misses * 100.0 / accesses))
 
     def get_shard(self, index):
         """Get the shard and index within the shard corresponding to the given index."""
@@ -619,9 +601,7 @@ class ChunkedSampler(Sampler):
         else:
             lo, hi = num_samples
 
-        self.dslength_per_replica = (
-            dslength_per_replica if dslength_per_replica > 0 else (hi - lo)
-        )
+        self.dslength_per_replica = dslength_per_replica if dslength_per_replica > 0 else (hi - lo)
 
         self.ranges = [(i, min(i + chunksize, hi)) for i in range(lo, hi, chunksize)]
         self.seed = seed
@@ -668,13 +648,9 @@ def DistributedChunkedSampler(
     more workers, the fewer shards are used by each worker.
     """
     if drop_last is not None:
-        warnings.warn(
-            "DistributedChunkedSampler does not support drop_last, thus it will be ignored"
-        )
+        warnings.warn("DistributedChunkedSampler does not support drop_last, thus it will be ignored")
     if not dist.is_initialized():
-        warnings.warn(
-            "DistributedChunkedSampler is called without distributed initialized; assuming single process"
-        )
+        warnings.warn("DistributedChunkedSampler is called without distributed initialized; assuming single process")
         num_replicas = 1
         rank = 0
     else:
@@ -683,9 +659,7 @@ def DistributedChunkedSampler(
     assert rank >= 0 and rank < num_replicas
 
     # From https://github.com/pytorch/pytorch/blob/13fa59580e4dd695817ccf2f24922fd211667fc8/torch/utils/data/distributed.py#L93
-    dslength_per_replica = (
-        math.ceil(len(dataset) / num_replicas) if num_replicas > 1 else len(dataset)
-    )
+    dslength_per_replica = math.ceil(len(dataset) / num_replicas) if num_replicas > 1 else len(dataset)
 
     num_samples = num_samples or len(dataset)
     worker_chunk = (num_samples + num_replicas - 1) // num_replicas

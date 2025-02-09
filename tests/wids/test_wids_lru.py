@@ -88,9 +88,7 @@ def test_eviction_and_release_callback():
     cache["d"] = 4  # Add 'd' to exceed capacity and trigger eviction
 
     # Check evicted keys
-    assert (
-        "b" in evicted_keys
-    )  # Since 'b' is the least recently used key, it should be evicted
+    assert "b" in evicted_keys  # Since 'b' is the least recently used key, it should be evicted
     assert len(evicted_keys) == 1
 
     # Check cache state after eviction
@@ -98,6 +96,4 @@ def test_eviction_and_release_callback():
     assert "b" not in cache  # 'b' should have been evicted
 
     # Test release handler was called with the correct values
-    assert (
-        evicted_keys[0] == "b"
-    )  # The key that was evicted should be passed to the release handler
+    assert evicted_keys[0] == "b"  # The key that was evicted should be passed to the release handler

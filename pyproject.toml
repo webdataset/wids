@@ -66,13 +66,15 @@ dev = [
 
 # Tool-specific settings (these remain unchanged)
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ["py310"]
+include = '^src/.*'
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 select = ["E", "F", "W", "C90"]
-ignore = ["E712", "F541"]
+ignore = ["E712", "F541", "C901", "E741"]
+exclude = ["examples"]
 
 [tool.pre-commit]
 repos = [
