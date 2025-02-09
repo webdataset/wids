@@ -52,8 +52,7 @@ rerelease:
 	test -z "$$(git status --porcelain)"
 	git push
 	poetry build
-	twine upload "$$(ls -t dist/*.whl | sed 1q)"
-	twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
+	twine upload dist/*
 
 patchrelease:
 	test -z "$$(git status --porcelain)"
