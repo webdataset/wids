@@ -1,0 +1,27 @@
+site_name: "wids Documentation"
+site_description: "Documentation for the wids Python library."
+site_author: "Your Name"
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - API: api.md
+  - Examples:
+      - "Train Resnet50": examples/train-resnet50-wids.ipynb
+      - "Train Resnet50 Multiray": examples/train-resnet50-multiray-wids.ipynb
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          setup_commands:
+            - >
+              import os, sys;
+              sys.path.insert(0, os.path.join(os.path.abspath('.'), 'src'))
+  - mkdocs-jupyter

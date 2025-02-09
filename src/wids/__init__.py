@@ -4,5 +4,9 @@
 #
 # flake8: noqa
 
+"""wids: Indexed WebDataset for PyTorch"""
+
 from .wids import (ChunkedSampler, DistributedChunkedSampler, ShardedSampler,
                    ShardListDataset)
+
+__all__ = ["ChunkedSampler", "DistributedChunkedSampler", "ShardedSampler", "ShardListDataset"]

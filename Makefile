@@ -15,6 +15,7 @@ venv:
 # Create virtual environment and install dependencies (using Poetry)
 clean:
 	rm -rf .venv
+	rm -rf poetry.lock
 	poetry env remove $(poetry env info --path)
 
 
