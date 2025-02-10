@@ -39,34 +39,36 @@ serve:
 
 # Stage, commit, and push changes to GitHub
 push:
-	git add .
+	test -z "$$(git status --porcelain)"
+	$(MAKE) lint
+	$(MAKE) test
 	git push
 
 # Build and upload to TestPyPI
 testpypi:
+	$(MAKE) push
 	uv run python -m build
 	uv run twine upload --repository testpypi dist/*
 	@echo "Install with: pip install --index-url https://test.pypi.org/simple/ --no-deps PACKAGE"
 
 # Rebuild and reupload current version
 release:
-	git push
-	test -z "$$(git status --porcelain)"
+	$(MAKE) push
 	uv run python -m build
 	uv run twine upload "$$(ls -t dist/*.whl | sed 1q)"
 	uv run twine upload "$$(ls -t dist/*.tar.gz | sed 1q)"
 
-# Patch release (0.0.x)
 patch:
+	$(MAKE) push
 	bumpversion patch
 	$(MAKE) release
 
-# Minor release (0.x.0)
 minorrelease:
+	$(MAKE) push
 	bumpversion minor
 	$(MAKE) release
 
-# Major release (x.0.0)
 majorrelease:
+	$(MAKE) push
 	bumpversion major
 	$(MAKE) release
