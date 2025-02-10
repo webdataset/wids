@@ -833,25 +833,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">List</span><span class="p">,</span>
-    <span class="n">Tuple</span><span class="p">,</span>
-    <span class="n">Dict</span><span class="p">,</span>
     <span class="n">Optional</span><span class="p">,</span>
-    <span class="n">Any</span><span class="p">,</span>
-    <span class="n">Union</span><span class="p">,</span>
-    <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">Iterable</span><span class="p">,</span>
-    <span class="n">Iterator</span><span class="p">,</span>
-    <span class="n">NamedTuple</span><span class="p">,</span>
-    <span class="n">Set</span><span class="p">,</span>
-    <span class="n">Sequence</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">DistributedDataParallel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">resnet50</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">transforms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">wids</span>
@@ -876,25 +865,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="clipboard-copy-txt" id="cell-1">import os
 import sys
 from typing import (
-    List,
-    Tuple,
-    Dict,
     Optional,
-    Any,
-    Union,
-    Callable,
-    Iterable,
-    Iterator,
-    NamedTuple,
-    Set,
-    Sequence,
 )
 import torch
 import torch.nn as nn
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torchvision.models import resnet50
-from torchvision import datasets, transforms
+from torchvision import transforms
 from torch.utils.data import DataLoader
 import ray
 import wids
@@ -1094,9 +1072,7 @@ of reference, will be significantly slower.</p>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_dataloader_train</span><span class="p">():</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">make_dataset_train</span><span class="p">()</span>
     <span class="n">sampler</span> <span class="o">=</span> <span class="n">wids</span><span class="o">.</span><span class="n">DistributedChunkedSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
-        <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span>
-    <span class="p">)</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dataloader</span>
 
 
@@ -1121,9 +1097,7 @@ of reference, will be significantly slower.</p>
 def make_dataloader_train():
     dataset = make_dataset_train()
     sampler = wids.DistributedChunkedSampler(dataset, chunksize=1000, shuffle=True)
-    dataloader = DataLoader(
-        dataset, batch_size=batch_size, sampler=sampler, num_workers=4
-    )
+    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=4)
     return dataloader
 
 
@@ -1272,9 +1246,7 @@ Config()</div>
 
             <span class="c1"># just bookkeping and progress report</span>
             <span class="n">steps</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
-            <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">outputs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-            <span class="p">)</span>  <span class="c1"># calculate accuracy</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="n">outputs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c1"># calculate accuracy</span>
             <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
             <span class="n">accuracies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accuracy</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1327,9 +1299,7 @@ def train(config):
 
             # just bookkeping and progress report
             steps += len(labels)
-            accuracy = (
-                (outputs.argmax(1) == labels).float().mean()
-            )  # calculate accuracy
+            accuracy = (outputs.argmax(1) == labels).float().mean()  # calculate accuracy
             losses.append(loss.item())
             accuracies.append(accuracy.item())
             if verbose and len(losses) &gt; 0:
@@ -1441,9 +1411,7 @@ you start up your Ray cluster.</p>
         <span class="n">config</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">rank</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"MASTER_ADDR"</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">master_addr</span>
         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"MASTER_PORT"</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">master_port</span>
-        <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span>
-            <span class="n">backend</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">world_size</span>
-        <span class="p">)</span>
+        <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">world_size</span><span class="p">)</span>
         <span class="c1"># Ray will automatically set CUDA_VISIBLE_DEVICES for each task.</span>
     <span class="n">train</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 </pre></div>
@@ -1459,9 +1427,7 @@ def train_in_ray(rank, config):
         config.rank = rank
         os.environ["MASTER_ADDR"] = config.master_addr
         os.environ["MASTER_PORT"] = config.master_port
-        dist.init_process_group(
-            backend=config.backend, rank=rank, world_size=config.world_size
-        )
+        dist.init_process_group(backend=config.backend, rank=rank, world_size=config.world_size)
         # Ray will automatically set CUDA_VISIBLE_DEVICES for each task.
     train(config)</div>
 </div>
@@ -1497,9 +1463,7 @@ def train_in_ray(rank, config):
     <span class="n">num_gpus</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">available_resources</span><span class="p">()[</span><span class="s2">"GPU"</span><span class="p">]</span>
     <span class="n">config</span><span class="o">.</span><span class="n">world_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">world_size</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">))</span>
     <span class="n">pprint</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">train_in_ray</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">world_size</span><span class="p">)]</span>
-    <span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">train_in_ray</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">world_size</span><span class="p">)])</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 
 
@@ -1519,9 +1483,7 @@ def distributed_training(config):
     num_gpus = ray.available_resources()["GPU"]
     config.world_size = int(min(config.world_size, num_gpus))
     pprint(config)
-    results = ray.get(
-        [train_in_ray.remote(i, config) for i in range(config.world_size)]
-    )
+    results = ray.get([train_in_ray.remote(i, config) for i in range(config.world_size)])
     print(results)
 
 
