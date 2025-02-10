@@ -9,5 +9,5 @@
 from .wids import (ChunkedSampler, DistributedChunkedSampler, ShardedSampler,
                    ShardListDataset)
 
-__version__ = '0.1.9'
+__version__ = '0.1.10'
 __all__ = ["ChunkedSampler", "DistributedChunkedSampler", "ShardedSampler", "ShardListDataset"]
