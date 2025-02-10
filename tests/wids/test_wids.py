@@ -1,13 +1,11 @@
-import json
 import os
 import random
-import textwrap
 from contextlib import contextmanager
 from unittest.mock import patch
 
 import pytest
 
-from wids import DistributedChunkedSampler, wids, wids_specs
+from wids import DistributedChunkedSampler, wids
 from wids.wids import ChunkedSampler, ShardedSampler, ShardListDataset
 
 
