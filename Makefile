@@ -14,7 +14,7 @@ venv:
 	type uv  # uv must be installed
 	python -m venv .venv
 	uv sync --all-extras
-	. .venv/bin/activate && pip install -e .
+	uv pip install -e .
 
 # Clean up virtual environment and cache
 clean:
