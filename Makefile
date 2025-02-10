@@ -60,15 +60,15 @@ release:
 
 patch:
 	$(MAKE) push
-	bumpversion patch
+	uv run bumpversion patch
 	$(MAKE) release
 
 minorrelease:
 	$(MAKE) push
-	bumpversion minor
+	uv run bumpversion minor
 	$(MAKE) release
 
 majorrelease:
 	$(MAKE) push
-	bumpversion major
+	uv run bumpversion major
 	$(MAKE) release
