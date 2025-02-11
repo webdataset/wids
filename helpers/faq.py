@@ -10,6 +10,8 @@ import typer
 
 app = typer.Typer()
 
+REPO = "webdataset/wids"
+
 
 def wrap_long_lines(text, width=80, threshold=120):
     lines = text.split("\n")
@@ -23,10 +25,10 @@ def wrap_long_lines(text, width=80, threshold=120):
 
 
 FAQ_INTRO = """
-# WebDataset FAQ
+# WIDS FAQ
 
-This is a Frequently Asked Questions file for WebDataset.  It is
-automatically generated from selected WebDataset issues using AI.
+This is a Frequently Asked Questions file for WIDS.  It is
+automatically generated from selected WIDS issues using AI.
 
 Since the entries are generated automatically, not all of them may
 be correct.  When in doubt, check the original issue.
@@ -72,13 +74,13 @@ def generate_faq_entries_from_issues():
 
     # Fetch all issues (open and closed) from the repository
     s = subprocess.run(
-        "gh issue list --repo webdataset/webdataset --label faq --state all --json number",
+        f"gh issue list --repo {REPO} --label faq --state all --json number",
         stdout=subprocess.PIPE,
         shell=True,
     ).stdout.decode()
     issues = json.loads(s)
     s = subprocess.run(
-        "gh issue list --repo webdataset/webdataset --label documentation --state all --json number",
+        f"gh issue list --repo {REPO} --label documentation --state all --json number",
         stdout=subprocess.PIPE,
         shell=True,
     ).stdout.decode()

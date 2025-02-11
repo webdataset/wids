@@ -22,22 +22,24 @@ clean:
 	rm -rf .pytest_cache .mypy_cache .coverage
 	find . -type d -name __pycache__ -exec rm -rf {} +
 
+test:
+	$(MAKE) venv
+	uv run pytest
+
 faq:
 	uv run python3 helpers/faq.py
 
 versions:
 	uv run python3 helpers/versions.py
 
-test:
-	$(MAKE) venv
-	uv run pytest
-
 readme:
-	# execute readme.ipynb notebook in place
 	uv run jupyter nbconvert --execute --to notebook --inplace readme.ipynb
 	uv run jupyter-nbconvert readme.ipynb --to markdown && mv readme.md README.md
-	uv run python3 helpers/faq.py
-	uv run python3 helpers/versions.py
+
+gendocs:
+	$(MAKE) readme
+	$(MAKE) faq
+	$(MAKE) versions
 	git add README.md FAQ.md VERSIONS.md && git commit -a -m "updated README.md FAQ.md VERSIONS.md"
 
 docs:

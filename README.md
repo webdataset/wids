@@ -112,7 +112,7 @@ plt.imshow(sample[".jpg"])
 
 
 
-    <matplotlib.image.AxesImage at 0x73e70e99be00>
+    <matplotlib.image.AxesImage at 0x750325e0b530>
 
 
 
