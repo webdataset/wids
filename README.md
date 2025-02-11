@@ -1,12 +1,165 @@
-# The Web Indexed Datasets Library
+[![Test](https://github.com/tmbdev/webdataset/workflows/CI/badge.svg)](https://github.com/tmbdev/webdataset/actions?query=workflow%3ACI)
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/tmbdev/webdataset/?ref=repository-badge)
 
-The Web Indexed Datasets Library (`wids`) is a library for reading
-WebDataset datasets in PyTorch with indexed (random) access.  WebDataset
-datasets are simply collections of standard POSIX tar files containing
-training samples.
 
-The `wids` library is a drop-in replacement for other indexed datasets
-in Python.  Despite being indexed and random access, it can work
-with datasets larger than local disk storage and performs incremental
-downloads.  Under the covers, it uses a very fast memory mapped tar
-file reader.
+```python
+%matplotlib inline
+import matplotlib.pyplot as plt
+import torch.utils.data
+import torch.nn
+from random import randrange
+import os
+os.environ["WDS_VERBOSE_CACHE"] = "1"
+os.environ["GOPEN_VERBOSE"] = "0"
+```
+
+# The WebDataset Format
+
+WebDataset format files are tar files, with two conventions:
+
+- within each tar file, files that belong together and make up a training sample share the same basename when stripped of all filename extensions
+- the shards of a tar file are numbered like `something-000000.tar` to `something-012345.tar`, usually specified using brace notation `something-{000000..012345}.tar`
+
+You can find a longer, more detailed specification of the WebDataset format in the [WebDataset Format Specification](https://docs.google.com/document/d/18OdLjruFNX74ILmgrdiCI9J1fQZuhzzRBCHV9URWto0/edit?usp=sharing)
+
+WebDataset can read files from local disk or from any pipe, which allows it to access files using common cloud object stores. WebDataset can also read concatenated MsgPack and CBORs sources.
+
+The WebDataset representation allows writing purely sequential I/O pipelines for large scale deep learning. This is important for achieving high I/O rates from local storage (3x-10x for local drives compared to random access) and for using object stores and cloud storage for training.
+
+The WebDataset format represents images, movies, audio, etc. in their native file formats, making the creation of WebDataset format data as easy as just creating a tar archive. Because of the way data is aligned, WebDataset works well with block deduplication as well and aligns data on predictable boundaries.
+
+Standard tools can be used for accessing and processing WebDataset-format files.
+
+
+```python
+bucket = "https://storage.googleapis.com/webdataset/testdata/"
+dataset = "publaynet-train-{000000..000009}.tar"
+
+url = bucket + dataset
+!curl -s {bucket}publaynet-train-000000.tar | dd count=5000 2> /dev/null | tar tf - 2> /dev/null | sed 10q
+```
+
+    PMC4991227_00003.json
+    PMC4991227_00003.png
+
+
+    PMC4537884_00002.json
+    PMC4537884_00002.png
+
+
+    PMC4323233_00003.json
+    PMC4323233_00003.png
+
+
+    PMC5429906_00004.json
+    PMC5429906_00004.png
+
+
+    PMC5592712_00002.json
+    PMC5592712_00002.png
+
+
+Note that in these `.tar` files, we have pairs of `.json` and `.png` files; each such pair makes up a training sample.
+
+# WebDataset Libraries
+
+There are several libraries supporting the WebDataset format:
+
+- `webdataset` for Python3 (includes the `wids` library), this repository
+- [Webdataset.jl](https://github.com/webdataset/WebDataset.jl) a Julia implementation
+- [tarp](https://github.com/webdataset/tarp), a Golang implementation and command line tool
+- Ray Data sources and sinks
+
+The `webdataset` library can be used with PyTorch, Tensorflow, and Jax.
+
+# The `wids` Library for Indexed WebDatasets
+
+Installing the `webdataset` library installs a second library called `wids`. This library provides fully indexed/random access to the same datasets that `webdataset` accesses using iterators/streaming.
+
+Like the `webdataset` library, `wids` is high scalable and provides efficient access to very large datasets. Being indexed, it is easily backwards compatible with existing data pipelines based on indexed dataset, including precise epochs for multinode training. The library comes with its own `ChunkedSampler` and `DistributedChunkedSampler` classes, which provided shuffling accross nodes while still preserving enough locality of reference for efficient training.
+
+Internally, the library uses a `mmap`-based `tar` file reader implementation; this allows very fast access without precomputed indexes, and it also means that shard and the equivalet of "shuffle buffers" are shared in memory between workers on the same machine.
+
+This additional power comes at some cost: the library requires a small metadata file that lists all the shards in a dataset and the number of samples contained in each, the library requires local storage for as many shards as there are I/O workers on a node, it uses shared memory and `mmap`, and the availability of indexing makes it easy to accidentally use inefficient access patterns.
+
+Generally, the recommendation is to use `webdataset` for all data generation, data transformation, and training code, and to use `wids` only if you need fully random access to datasets (e.g., for browing or sparse sampling), need an indexed-based sampler, or are converting tricky legacy code.
+
+
+
+```python
+import wids
+
+train_url = "https://storage.googleapis.com/webdataset/fake-imagenet/imagenet-train.json"
+
+dataset = wids.ShardListDataset(train_url)
+
+sample = dataset[1900]
+
+print(sample.keys())
+print(sample[".txt"])
+plt.imshow(sample[".jpg"])
+```
+
+    dict_keys(['.cls', '.jpg', '.txt', '__key__', '__dataset__', '__index__', '__shard__', '__shardindex__'])
+    a high quality color photograph of a dog
+
+
+    https://storage.googleapis.com/webdataset/fake-ima base: https://storage.googleapis.com/webdataset/fake-imagenet name: imagenet-train nfiles: 1282 nbytes: 31242280960 samples: 128200 cache: /tmp/_wids_cache
+    /home/tmb/proj/wids/src/wids/wids.py:316: UserWarning: String specifications for transformations are deprecated. Use functions instead.
+      warnings.warn("String specifications for transformations are deprecated. Use functions instead.")
+
+
+
+
+
+    <matplotlib.image.AxesImage at 0x73e70e99be00>
+
+
+
+
+    
+![png](readme_files/readme_7_3.png)
+    
+
+
+There are several examples of how to use `wids` in the [examples](examples) directory.
+
+- [train-resnet50-wids](examples/out/train-resnet50-wids.ipynb) shows how to train a ResNet-50 model on ImageNet using `wids`
+- [train-resnet50-multiray-wids](examples/out/train-resnet50-multiray-wids.ipynb) shows how to train a ResNet-50 model on ImageNet using multiple nodes
+
+Note that the APIs between `webdataset` and `wids` are not fully consistent:
+
+- `wids` keeps the extension's "." in the keys, while `webdataset` removes it (".txt" vs "txt")
+- `wids` doesn't have a fully fluid interface, and `add_transformation` just adds to a list of transformations
+- `webdataset` currently can't read the `wids` JSON specifications
+
+# Installation and Documentation
+
+    $ pip install wids
+
+For the Github version:
+
+    $ pip install git+https://github.com/tmbdev/wids.git
+
+Here are some videos talking about WebDataset and large scale deep learning:
+
+- [Introduction to Large Scale Deep Learning](https://www.youtube.com/watch?v=kNuA2wflygM)
+- [Loading Training Data with WebDataset](https://www.youtube.com/watch?v=mTv_ePYeBhs)
+- [Creating Datasets in WebDataset Format](https://www.youtube.com/watch?v=v_PacO-3OGQ)
+- [Tools for Working with Large Datasets](https://www.youtube.com/watch?v=kIv8zDpRUec)
+
+# Dependencies
+
+The `wids` library only requires PyTorch, NumPy, and a small library called `braceexpand`.
+
+The `wids` library loads a few additional libraries dynamically only when they are actually needed and only in the decoder:
+
+- PIL/Pillow for image decoding
+- `torchvision`, `torchvideo`, `torchaudio` for image/video/audio decoding
+- `msgpack` for MessagePack decoding
+- the `curl` command line tool for accessing HTTP servers
+- the Google/Amazon/Azure command line tools for accessing cloud storage buckets
+
+Loading of one of these libraries is triggered by configuring a decoder that attempts to decode content in the given format and encountering a file in that format during decoding. (Eventually, the torch... dependencies will be refactored into those libraries.)
+
+
