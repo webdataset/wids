@@ -1,12 +1,8 @@
-## Commit: v0.1.10 -> v0.1.10-2-g9428f41
+## Commit: v0.1.10 -> v0.1.10-3-g6460fad
 
 f0a41f4 -> HEAD @ 2025-02-09 21:58:38 -0500
 
-- Introduced new helper scripts `faq.py` and `versions.py` to automate FAQ generation and version summarization.
-- `faq.py` uses AI to generate FAQ entries from GitHub issues, focusing on extracting useful information for users.
-- `versions.py` summarizes changes between commits, providing concise changelog entries without mentioning version numbers.
-- Updated `Makefile` and `pyproject.toml` to integrate these new functionalities.
-- Enhanced project structure by adding new directories and files, improving automation and documentation processes.
+The recent changes introduce automated generation of FAQ and version documentation using Python scripts. The `faq.py` script fetches issues from a GitHub repository, processes them with AI to generate FAQ entries, and compiles them into a Markdown file. The `versions.py` script summarizes changes between commits for inclusion in changelogs, focusing on the intent and meaning of changes rather than specific file modifications. Both scripts utilize the `typer` library for command-line interface creation and integrate with external tools like `gh` and `sgpt` for data retrieval and processing.
 
 ## Commit: v0.1.9 -> v0.1.10
 

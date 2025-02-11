@@ -44,6 +44,8 @@ url = bucket + dataset
 
 
     PMC4537884_00002.json
+
+
     PMC4537884_00002.png
 
 
@@ -112,7 +114,7 @@ plt.imshow(sample[".jpg"])
 
 
 
-    <matplotlib.image.AxesImage at 0x750325e0b530>
+    <matplotlib.image.AxesImage at 0x7187ffd119d0>
 
 
 
