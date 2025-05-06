@@ -72,10 +72,9 @@ class LRUShards:
     last_missed: bool
     
     def __init__(
-        self, 
-        lru_size: int, 
-        keep: bool = False, 
-        localname: Callable[[str], str] = ...,
+        self,
+        lru_size: int,
+        localname: Callable[[str], str] = ...,  
     ) -> None: ...
     
     def reset_stats(self) -> None: ...

@@ -283,11 +283,10 @@ class LRUShards:
     stores the local names of the shards as keys and the downloaded paths as
     values. The shards are downloaded to a directory specified by dldir.
     The local name of a shard is computed by the localname function, which
-    takes the shard URL as an argument. If keep is True, the downloaded files
-    are not deleted when they are no longer needed.
+    takes the shard URL as an argument.
     """
 
-    def __init__(self, lru_size, keep=False, localname=DefaultLocalname()):
+    def __init__(self, lru_size, localname=DefaultLocalname()):
         self.localname = localname
         # the cache contains the local name as the key and the downloaded path as the value
         self.lru = LRUCache(lru_size, release_handler=self.release_handler)
@@ -459,7 +458,8 @@ class ShardListDataset(Dataset[T]):
 
         if lru_size > 200:
             warnings.warn("LRU size is very large; consider reducing it to avoid running out of file descriptors")
-        self.cache = LRUShards(lru_size, localname=self.localname, keep=keep)
+        # instantiate LRU cache of shards (keep flag removed)
+        self.cache = LRUShards(lru_size, localname=self.localname)
 
     def add_transform(self, transform):
         """Add a transformation to the dataset."""
