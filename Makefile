@@ -12,7 +12,6 @@ autofix:
 # Create virtual environment and install dependencies using uv
 venv:
 	type uv  # uv must be installed
-	python -m venv .venv
 	uv sync --all-extras
 	uv pip install -e .
 
