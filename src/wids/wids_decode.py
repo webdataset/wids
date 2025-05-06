@@ -8,7 +8,8 @@ def check_keys(sample: Dict[str, Any]):
     for k, _ in sample.items():
         if k.startswith("__"):
             continue
-        assert k.startswith("."), f"Key {k} must start with a dot"
+        if not k.startswith("."):
+            raise ValueError(f"Key '{k}' must start with a dot")
 
 
 def decode_all_gz(sample: Dict[str, Any], format: Optional[Union[bool, str]] = True, update_key=True):

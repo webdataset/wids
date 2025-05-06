@@ -1,0 +1,31 @@
+Top 10 issues identified in src/wids/:
+
+1. Overuse of assert for runtime errors
+   Functions like splitname, MD5‐sum checks, and spec loading use assert, which is stripped with -O. Use explicit exceptions instead.
+
+2. Resource leaks & unclosed handles
+   hash_localname never closes its SQLite connection; MMIndexedTar and download_and_open can leave streams or mmap handles open, leading to FD leaks.
+
+3. keep flag in LRUShards is a no-op
+   The constructor accepts keep=False but never uses it; evicted shards are always closed.
+
+4. LRUCache & open_objects not thread-safe
+   Neither the in-memory LRU nor the global open_objects dict use locks, risking races in multi-worker DataLoader contexts.
+
+5. Brittle, external-tool-only downloads
+   HTTP/S/FTP/S3/GS handlers shell out to curl/aws/gsutil with no fallback or availability check, causing abrupt failures if CLIs are missing.
+
+6. Manual tar parsing is fragile
+   MMIndexedTar re-implements tar parsing without PAX or GNU extension support; TarFileReader duplicates tarfile logic and relies on unstable fileobj offsets.
+
+7. Verbosity gating is broken
+   Modules print unconditionally or use flawed `if True or os.getenv("WIDS_VERBOSE")`: you can’t silence unwanted logs.
+
+8. Confusing key naming (leading dot)
+   Sample dict keys start with a dot (e.g. ".jpg"), forcing all users to remember and handle that convention.
+
+9. default_decoder signature bug
+   default_decoder declares `format: Union[bool,str]=True` then calls `format.lower()`, raising TypeError if called with the default True.
+
+10. Missing dependency on requests
+    wids_specs.load_remote_dsdesc_raw falls back to import requests but requests is not in the core dependencies.

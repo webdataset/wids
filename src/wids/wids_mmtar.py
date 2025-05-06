@@ -131,7 +131,8 @@ def keep_while_reading(fname, fd, phase, delay=0.0):
     unavailable to new readers, since the downloader checks first
     whether the file exists.
     """
-    assert delay == 0.0, "delay not implemented"
+    if delay != 0.0:
+        raise NotImplementedError("Delay not implemented in keep_while_reading")
     if fd < 0 or fname is None:
         return
     if phase == "start":

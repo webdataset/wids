@@ -78,7 +78,8 @@ def compute_num_samples(fname):
 
 def splitname(fname):
     """Returns the basename and extension of a filename"""
-    assert "." in fname, "Filename must have an extension"
+    if "." not in fname:
+        raise ValueError(f"Filename must have an extension: {fname}")
     basename, extension = re.match(r"^((?:.*/)?.*?)(\..*)$", fname).groups()
     return basename, extension
 
@@ -138,7 +139,8 @@ class IndexedTarSamples:
         use_mmap=True,
         index_file=find_index_file,
     ):
-        assert path is not None or stream is not None
+        if path is None and stream is None:
+            raise ValueError("Either 'path' or 'stream' must be provided")
 
         # Create TarFileReader object to read from tar_file
         self.path = path
@@ -148,7 +150,8 @@ class IndexedTarSamples:
         if md5sum is not None:
             stream.seek(0)
             got = compute_file_md5sum(stream)
-            assert got == md5sum, f"MD5 sum mismatch: expected {md5sum}, got {got}"
+            if got != md5sum:
+                raise ValueError(f"MD5 sum mismatch: expected {md5sum}, got {got}")
             stream.seek(0)
 
         # use either the mmap or the stream based implementation
@@ -164,8 +167,8 @@ class IndexedTarSamples:
         self.samples = group_by_key(all_files)
 
         # check that the number of samples is correct
-        if expected_size is not None:
-            assert len(self) == expected_size, f"Expected {expected_size} samples, got {len(self)}"
+        if expected_size is not None and len(self) != expected_size:
+            raise ValueError(f"Expected {expected_size} samples, got {len(self)}")
 
         self.uuid = str(uuid.uuid4())
 
@@ -189,7 +192,10 @@ class IndexedTarSamples:
             k, ext = splitname(fname)
             # Make sure all files in sample have same key
             key = key or k
-            assert key == k
+            if key is not None and key != k:
+                raise ValueError(
+                    f"Inconsistent sample key: expected {key}, but got {k} in file {fname}"
+                )
             sample[ext] = data
         # Add key to sample
         sample["__key__"] = key
@@ -286,7 +292,8 @@ class LRUShards:
         self.lru.clear()
 
     def get_shard(self, url):
-        assert isinstance(url, str)
+        if not isinstance(url, str):
+            raise TypeError(f"Shard URL must be a string, got {type(url).__name__}")
         self.accesses += 1
         if url not in self.lru:
             local = self.localname(url)
@@ -319,7 +326,8 @@ def interpret_transformations(transformations):
             warnings.warn("String specifications for transformations are deprecated. Use functions instead.")
             transformation = partial(default_decoder, format="numpy")
         else:
-            assert callable(transformation)
+            if not callable(transformation):
+                raise TypeError(f"Transformation {transformation} is not callable")
         result.append(transformation)
 
     return result
@@ -656,7 +664,8 @@ def DistributedChunkedSampler(
     else:
         num_replicas = num_replicas or dist.get_world_size()
         rank = rank or dist.get_rank()
-    assert rank >= 0 and rank < num_replicas
+    if rank < 0 or rank >= num_replicas:
+        raise ValueError(f"Rank {rank} out of range for {num_replicas} replicas")
 
     # From https://github.com/pytorch/pytorch/blob/13fa59580e4dd695817ccf2f24922fd211667fc8/torch/utils/data/distributed.py#L93
     dslength_per_replica = math.ceil(len(dataset) / num_replicas) if num_replicas > 1 else len(dataset)

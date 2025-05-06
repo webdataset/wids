@@ -40,25 +40,32 @@ class ULockFile:
 
 def pipe_download(remote, local):
     """Perform a download for a pipe: url."""
-    assert remote.startswith("pipe:")
+    if not remote.startswith("pipe:"):
+        raise ValueError(f"Invalid pipe URL: {remote}")
     cmd = remote[5:]
     cmd = cmd.format(local=local)
     result = subprocess.run(cmd, shell=True, capture_output=True)
-    assert result.returncode == 0, f"Command failed: {cmd}, error: {result.stderr.decode('utf-8', errors='replace')}"
+    if result.returncode != 0:
+        stderr = result.stderr.decode('utf-8', errors='replace')
+        raise RuntimeError(f"Command failed: {cmd}, error: {stderr}")
 
 
 def copy_file(remote, local):
-    remote = urlparse(remote)
-    assert remote.scheme in ["file", ""]
-    # use absolute path
-    remote = os.path.abspath(remote.path)
-    local = urlparse(local)
-    assert local.scheme in ["file", ""]
-    local = os.path.abspath(local.path)
-    if remote == local:
+    parsed_remote = urlparse(remote)
+    if parsed_remote.scheme not in ["file", ""]:
+        raise ValueError(f"Unsupported remote scheme: {parsed_remote.scheme}")
+    # Convert remote URL to absolute file path
+    remote_path = os.path.abspath(parsed_remote.path)
+    # Parse and validate local URL
+    parsed_local = urlparse(local)
+    if parsed_local.scheme not in ["file", ""]:
+        raise ValueError(f"Unsupported local scheme: {parsed_local.scheme}")
+    local_path = os.path.abspath(parsed_local.path)
+    # If remote and local paths are identical, do nothing
+    if remote_path == local_path:
         return
-    # check if the local file exists
-    shutil.copyfile(remote, local)
+    # Copy the remote file to local path
+    shutil.copyfile(remote_path, local_path)
 
 
 verbose_cmd = int(os.environ.get("WIDS_VERBOSE_CMD", "0"))

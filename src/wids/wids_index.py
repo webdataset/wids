@@ -166,7 +166,8 @@ def main_update(args):
             data["base"] = args.base
         if args.rebase:
             bases = {urldirbase(shard["url"]) for shard in data["shardlist"]}
-            assert len(bases) == 1, f"multiple/no bases found: {bases}"
+            if len(bases) != 1:
+                raise ValueError(f"Multiple or no bases found for rebasing: {bases}")
             base = bases.pop()
             print(f"rebasing to {base}")
             data["base"] = base

@@ -62,11 +62,15 @@ def check_shards(l):
     This checks that the list is a list of dictionaries, and that
     each dictionary has a "url" and a "nsamples" key.
     """
-    assert isinstance(l, list)
+    if not isinstance(l, list):
+        raise TypeError(f"Shard list must be a list, got {type(l).__name__}")
     for shard in l:
-        assert isinstance(shard, dict)
-        assert "url" in shard
-        assert "nsamples" in shard
+        if not isinstance(shard, dict):
+            raise TypeError(f"Each shard must be a dict, got {type(shard).__name__}")
+        if "url" not in shard:
+            raise KeyError("Shard dictionary missing required key 'url'")
+        if "nsamples" not in shard:
+            raise KeyError("Shard dictionary missing required key 'nsamples'")
     return l
 
 
@@ -133,15 +137,19 @@ def resolve_dsdesc(dsdesc, *, options=None, base=None):
     """
     if options is None:
         options = {}
-    assert isinstance(dsdesc, dict)
+    if not isinstance(dsdesc, dict):
+        raise TypeError(f"Dataset description must be a dict, got {type(dsdesc).__name__}")
     dsdesc = dict(dsdesc, **options)
     shardlist = rebase_shardlist(dsdesc.get("shardlist", []), base)
-    assert shardlist is not None
+    if shardlist is None:
+        raise ValueError("Dataset description returned no shardlist")
     set_all(shardlist, "weight", dsdesc.get("weight"))
     set_all(shardlist, "name", dsdesc.get("name"))
     check_shards(shardlist)
-    assert "wids_version" in dsdesc, "No wids_version in dataset description"
-    assert dsdesc["wids_version"] == 1, "Unknown wids_version"
+    if "wids_version" not in dsdesc:
+        raise KeyError("No 'wids_version' in dataset description")
+    if dsdesc["wids_version"] != 1:
+        raise ValueError(f"Unsupported wids_version: {dsdesc['wids_version']}")
     for component in dsdesc.get("datasets", []):
         # we use the weight from the reference to the dataset,
         # regardless of remote loading
@@ -151,8 +159,10 @@ def resolve_dsdesc(dsdesc, *, options=None, base=None):
         if "source_url" in component:
             source_url = component["source_url"]
             component = load_remote_dsdesc_raw(source_url)
-        assert "source_url" not in component, "double indirection in dataset description"
-        assert "shardlist" in component, "no shardlist in dataset description"
+        if "source_url" in component:
+            raise ValueError("Double indirection in dataset description is not allowed")
+        if "shardlist" not in component:
+            raise KeyError("No 'shardlist' in nested dataset description")
         # if the component has a base, use it to rebase the shardlist
         # otherwise use the base from the source_url, if any
         subbase = component.get("base", urldir(source_url) if source_url else None)
@@ -163,7 +173,8 @@ def resolve_dsdesc(dsdesc, *, options=None, base=None):
         set_all(l, "source_url", source_url)
         set_all(l, "dataset", component.get("name"))
         shardlist.extend(l)
-    assert len(shardlist) > 0, "No shards found"
+    if len(shardlist) == 0:
+        raise ValueError("No shards found in dataset description")
     dsdesc["shardlist"] = shardlist
     return dsdesc
 
