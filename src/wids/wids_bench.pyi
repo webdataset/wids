@@ -1,0 +1,6 @@
+import argparse
+from typing import Any, Dict, List, Optional
+
+def main_wids(args: argparse.Namespace) -> None: ...
+
+def main_wds(args: argparse.Namespace) -> None: ...
