@@ -208,35 +208,51 @@ class IndexedTarSamples:
         return str(self)
 
 
-def hash_localname(dldir="/tmp/_wids_cache"):
-    os.makedirs(dldir, exist_ok=True)
+class HashLocalname:
+    """Compute and store local cache filenames for shards using an SQLite index."""
 
-    connection = sqlite3.connect(os.path.join(dldir, "cache.db"))
-    cursor = connection.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS cache (url TEXT PRIMARY KEY, path TEXT, checksum TEXT)")
-    connection.commit()
+    def __init__(self, dldir: str = "/tmp/_wids_cache") -> None:
+        os.makedirs(dldir, exist_ok=True)
+        self._dldir = dldir
+        db_path = os.path.join(dldir, "cache.db")
+        self._conn = sqlite3.connect(db_path)
+        self._cursor = self._conn.cursor()
+        self._cursor.execute(
+            "CREATE TABLE IF NOT EXISTS cache (url TEXT PRIMARY KEY, path TEXT, checksum TEXT)"
+        )
+        self._conn.commit()
 
-    def f(shard):
-        """Given a URL, return a local name for the shard."""
+    def __call__(self, shard: str) -> str:
+        """Given a shard URL, return a local filename in the cache directory."""
         if shard.startswith("pipe:"):
-            # uuencode the entire URL string
-            hex32 = base64.urlsafe_b64encode(hashlib.sha256(shard.encode()).digest())[:32].decode()
-            return os.path.join(dldir, "pipe__" + hex32)
-        else:
-            # we hash the host and directory components into a 16 character string
-            dirname = urldir(shard)
-            hex16 = base64.urlsafe_b64encode(hashlib.sha256(dirname.encode()).digest())[:16].decode()
-            # the cache name is the concatenation of the hex16 string and the file name component of the URL
-            cachename = "data__" + hex16 + "__" + os.path.basename(urlparse(shard).path)
-            checksum = None
-            cursor.execute(
-                "INSERT OR REPLACE INTO cache VALUES (?, ?, ?)",
-                (shard, cachename, checksum),
-            )
-            connection.commit()
-            return os.path.join(dldir, cachename)
+            # Hash the full command URL to a 32-char safe prefix
+            key = base64.urlsafe_b64encode(
+                hashlib.sha256(shard.encode()).digest()
+            )[:32].decode()
+            return os.path.join(self._dldir, f"pipe__{key}")
+        # Otherwise, hash directory component to 16-char prefix
+        dirname = urldir(shard)
+        key = base64.urlsafe_b64encode(
+            hashlib.sha256(dirname.encode()).digest()
+        )[:16].decode()
+        fname = os.path.basename(urlparse(shard).path)
+        cachename = f"data__{key}__{fname}"
+        # Upsert into cache table
+        self._cursor.execute(
+            "INSERT OR REPLACE INTO cache (url, path, checksum) VALUES (?, ?, ?)",
+            (shard, cachename, None),
+        )
+        self._conn.commit()
+        return os.path.join(self._dldir, cachename)
 
-    return f
+    def close(self) -> None:
+        """Close the underlying SQLite connection."""
+        if hasattr(self, '_conn') and self._conn:
+            self._conn.close()
+            self._conn = None
+
+# For backward compatibility, hash_localname constructs a callable instance
+hash_localname = HashLocalname
 
 
 class CacheLocalname:
