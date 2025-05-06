@@ -1,6 +1,7 @@
 import fcntl
 import os
 import shutil
+import subprocess
 import sys
 import time
 from collections import deque
@@ -42,7 +43,8 @@ def pipe_download(remote, local):
     assert remote.startswith("pipe:")
     cmd = remote[5:]
     cmd = cmd.format(local=local)
-    assert os.system(cmd) == 0, "Command failed: %s" % cmd
+    result = subprocess.run(cmd, shell=True, capture_output=True)
+    assert result.returncode == 0, f"Command failed: {cmd}, error: {result.stderr.decode('utf-8', errors='replace')}"
 
 
 def copy_file(remote, local):
@@ -66,16 +68,53 @@ def vcmd(flag, verbose_flag=""):
     return verbose_flag if verbose_cmd else flag
 
 
+def download_http(url, local):
+    """Download a file using curl for HTTP/HTTPS."""
+    args = ["curl"]
+    if not verbose_cmd:
+        args.append("-s")
+    args.extend(["-L", url, "-o", local])
+    result = subprocess.run(args, check=True, capture_output=True)
+    return result.returncode == 0
+
+
+def download_ftp(url, local):
+    """Download a file using curl for FTP/FTPS."""
+    args = ["curl"]
+    if not verbose_cmd:
+        args.append("-s")
+    args.extend(["-L", url, "-o", local])
+    result = subprocess.run(args, check=True, capture_output=True)
+    return result.returncode == 0
+
+
+def download_gs(url, local):
+    """Download a file from Google Cloud Storage."""
+    args = ["gsutil"]
+    if not verbose_cmd:
+        args.append("-q")
+    args.extend(["cp", url, local])
+    result = subprocess.run(args, check=True, capture_output=True)
+    return result.returncode == 0
+
+
+def download_s3(url, local):
+    """Download a file from Amazon S3."""
+    args = ["aws", "s3", "cp", url, local]
+    result = subprocess.run(args, check=True, capture_output=True)
+    return result.returncode == 0
+
+
 default_cmds = {
     "posixpath": copy_file,
     "file": copy_file,
     "pipe": pipe_download,
-    "http": "curl " + vcmd("-s") + " -L '{url}' -o '{local}'",
-    "https": "curl " + vcmd("-s") + " -L '{url}' -o '{local}'",
-    "ftp": "curl " + vcmd("-s") + " -L '{url}' -o '{local}'",
-    "ftps": "curl " + vcmd("-s") + " -L '{url}' -o '{local}'",
-    "gs": "gsutil " + vcmd("-q") + " cp '{url}' '{local}'",
-    "s3": "aws s3 cp '{url}' '{local}'",
+    "http": download_http,
+    "https": download_http,
+    "ftp": download_ftp,
+    "ftps": download_ftp,
+    "gs": download_gs,
+    "s3": download_s3,
 }
 
 
@@ -95,13 +134,8 @@ def download_file_no_log(remote, local, handlers=default_cmds):
     handler = handlers.get(schema)
     if handler is None:
         raise ValueError("Unknown schema: %s" % schema)
-    # call the handler
-    if callable(handler):
-        handler(remote, local)
-    else:
-        assert isinstance(handler, str)
-        cmd = handler.format(url=remote, local=local)
-        assert os.system(cmd) == 0, "Command failed: %s" % cmd
+    # call the handler - all handlers are now callable functions
+    handler(remote, local)
     return local
 
 
