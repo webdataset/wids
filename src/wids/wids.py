@@ -253,6 +253,10 @@ class HashLocalname:
         if hasattr(self, '_conn') and self._conn:
             self._conn.close()
             self._conn = None
+            
+    def __del__(self) -> None:
+        """Ensure connection is closed when object is garbage collected."""
+        self.close()
 
 # For backward compatibility, hash_localname constructs a callable instance
 hash_localname = HashLocalname
