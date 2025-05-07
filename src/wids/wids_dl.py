@@ -39,7 +39,20 @@ class ULockFile:
 
 
 def pipe_download(remote, local):
-    """Perform a download for a pipe: url."""
+    """Perform a download for a pipe: url.
+    
+    Security note: The pipe: URL scheme intentionally executes shell commands.
+    This is a powerful feature that allows for custom data processing pipelines,
+    but carries inherent security risks:
+    
+    1. Commands are executed with shell=True, which interprets shell metacharacters
+    2. No sandboxing or limitations are applied to the commands
+    3. Commands have the same permissions as the Python process
+    
+    This functionality should only be used in trusted environments where the URL
+    sources are controlled and validated. Using pipe: URLs from untrusted sources
+    could lead to arbitrary code execution.
+    """
     if not remote.startswith("pipe:"):
         raise ValueError(f"Invalid pipe URL: {remote}")
     cmd = remote[5:]
