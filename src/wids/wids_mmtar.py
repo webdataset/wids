@@ -64,6 +64,14 @@ class MMIndexedTar:
             self.cleanup_callback(self.fname, self.stream.fileno(), "end")
         self.mmapped_file.close()
         self.stream.close()
+        
+    def __del__(self):
+        """Ensure resources are properly closed when the object is garbage collected."""
+        try:
+            self.close()
+        except (AttributeError, ValueError, IOError):
+            # Object might be partially initialized or already closed
+            pass
 
     def _build_index(self):
         self.by_name = {}
