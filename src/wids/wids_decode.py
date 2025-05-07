@@ -168,9 +168,9 @@ def default_decoder(
     decode_all_gz(result, update_key=gz_update_key)  # for backwards compatibility
     decode_basic(result)
 
-    if format.lower() == "pil":
+    if isinstance(format, str) and format.lower() == "pil":
         decode_images_to_pil(result)
-    elif format.lower() == "numpy":
+    elif isinstance(format, str) and format.lower() == "numpy":
         decode_images_to_numpy(result)
     else:
         raise ValueError(f"Unknown format: {format}")
