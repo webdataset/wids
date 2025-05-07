@@ -14,6 +14,8 @@ from typing import BinaryIO, Optional, TypeVar, Union
 from urllib.parse import quote, urlparse
 
 import numpy as np
+# Verbosity flag for wids; set WIDS_VERBOSE=1 to enable verbose output
+WIDS_VERBOSE = bool(int(os.environ.get("WIDS_VERBOSE", 0)))
 import torch.distributed as dist
 
 from .wids_decode import default_decoder
@@ -100,7 +102,8 @@ def group_by_key(names):
     for i, fname in enumerate(names):
         # Ignore files that are not in a subdirectory.
         if "." not in fname:
-            print(f"Warning: Ignoring file {fname} (no '.')")
+            # Warn about files without extensions; can be silenced via warnings filter
+            warnings.warn(f"Ignoring file {fname} (no '.')")
             continue
         key, ext = splitname(fname)
         if key != last_key:
@@ -435,7 +438,8 @@ class ShardListDataset(Dataset[T]):
             self.cache_dir = os.environ.get("WIDS_CACHE", "/tmp/_wids_cache")
             self.localname = DefaultLocalname(self.cache_dir)
 
-        if True or int(os.environ.get("WIDS_VERBOSE", 0)):
+        # Only print dataset summary if verbosity enabled
+        if WIDS_VERBOSE:
             nbytes = sum(shard.get("filesize", 0) for shard in self.shards)
             nsamples = sum(shard["nsamples"] for shard in self.shards)
             print(
@@ -480,7 +484,8 @@ class ShardListDataset(Dataset[T]):
         if accesses > 100 and misses / accesses > 0.3:
             # output a warning only once
             self.check_cache_misses = lambda: None
-            print("Warning: ShardListDataset has a cache miss rate of {:.1%}%".format(misses * 100.0 / accesses))
+            # Warn about high cache miss rate; can be silenced via warnings filter
+            warnings.warn(f"ShardListDataset has a cache miss rate of {misses/accesses:.1%}")
 
     def get_shard(self, index):
         """Get the shard and index within the shard corresponding to the given index."""

@@ -17,8 +17,12 @@ def find_index_file(file):
 
 
 class TarFileReader:
-    def __init__(self, file, index_file=find_index_file, verbose=True):
-        self.verbose = verbose
+    def __init__(self, file, index_file=find_index_file, verbose=None):
+        # Determine verbosity: use parameter if provided, else env var WIDS_VERBOSE
+        if verbose is None:
+            self.verbose = bool(int(os.environ.get("WIDS_VERBOSE", 0)))
+        else:
+            self.verbose = bool(verbose)
         if callable(index_file):
             index_file = index_file(file)
         self.index_file = index_file
