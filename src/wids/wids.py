@@ -678,10 +678,9 @@ def DistributedChunkedSampler(
 
     Since the split among workers takes place before the chunk shuffle,
     workers end up with a fixed set of shards they need to download. The
-    more workers, the fewer shards are used by each worker.
+    more workers, the fewer shards are used by each worker. Set drop_last=True
+    to give each replica the same number of samples, discarding the remainder.
     """
-    if drop_last is not None:
-        warnings.warn("DistributedChunkedSampler does not support drop_last, thus it will be ignored")
     if not dist.is_initialized():
         warnings.warn("DistributedChunkedSampler is called without distributed initialized; assuming single process")
         num_replicas = 1
@@ -692,11 +691,16 @@ def DistributedChunkedSampler(
     if rank < 0 or rank >= num_replicas:
         raise ValueError(f"Rank {rank} out of range for {num_replicas} replicas")
 
-    # From https://github.com/pytorch/pytorch/blob/13fa59580e4dd695817ccf2f24922fd211667fc8/torch/utils/data/distributed.py#L93
-    dslength_per_replica = math.ceil(len(dataset) / num_replicas) if num_replicas > 1 else len(dataset)
-
-    num_samples = num_samples or len(dataset)
-    worker_chunk = (num_samples + num_replicas - 1) // num_replicas
+    if drop_last:
+        num_samples = len(dataset) if num_samples is None else num_samples
+        if not 0 <= num_samples <= len(dataset):
+            raise ValueError("num_samples must be between zero and the dataset size")
+        worker_chunk = num_samples // num_replicas
+        dslength_per_replica = worker_chunk
+    else:
+        num_samples = num_samples or len(dataset)
+        worker_chunk = (num_samples + num_replicas - 1) // num_replicas
+        dslength_per_replica = math.ceil(len(dataset) / num_replicas)
     worker_start = rank * worker_chunk
     worker_end = min(worker_start + worker_chunk, num_samples)
     return ChunkedSampler(

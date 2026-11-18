@@ -419,3 +419,28 @@ class TestDistributedChunkedSampler:
         assert (
             samples1.intersection(samples2) == set()
         )  # The samples should be disjoint
+
+
+@pytest.mark.parametrize("num_samples", [0, 2, 9, 11])
+@pytest.mark.parametrize("shuffle", [False, True])
+def test_distributed_drop_last(num_samples, shuffle):
+    from torch.utils.data import DataLoader
+
+    dataset = list(range(15))
+    partitions = []
+    for rank in range(3):
+        with mock_distributed_env(rank, 3):
+            sampler = DistributedChunkedSampler(
+                dataset, num_samples=num_samples, drop_last=True, shuffle=shuffle, chunksize=2
+            )
+            loader = DataLoader(dataset, sampler=sampler, batch_size=2)
+            samples = [sample for batch in loader for sample in batch.tolist()]
+            assert len(samples) == len(sampler) == num_samples // 3
+            partitions.extend(samples)
+    assert sorted(partitions) == list(range(num_samples - num_samples % 3))
+
+
+@pytest.mark.parametrize("num_samples", [-1, 16])
+def test_distributed_drop_last_invalid_sample_count(num_samples):
+    with mock_distributed_env(0, 3), pytest.raises(ValueError, match="num_samples"):
+        DistributedChunkedSampler(range(15), drop_last=True, num_samples=num_samples)
